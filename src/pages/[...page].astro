@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostItem from '../components/PostItem.astro';
+import { getAllPosts, postHref } from '../utils/posts';
+import { siteConfig } from '../site.config';
+import type { GetStaticPaths } from 'astro';
+
+/**
+ * 首页列表 + 分页。
+ * 路由是 /[...page]，所以第 1 页是 /，第 2 页是 /2/ ...
+ */
+export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
+  const posts = await getAllPosts();
+  return paginate(posts, { pageSize: siteConfig.pageSize });
+};
+
+const { page } = Astro.props;
+---
+
+<BaseLayout wide>
+  {page.currentPage === 1 && (
+    <section class="page-head">
+      <h1 class="page-title">{siteConfig.title}</h1>
+      <p class="page-subtitle">{siteConfig.description}</p>
+    </section>
+  )}
+
+  {
+    page.data.length === 0 ? (
+      <p class="empty-hint">
+        还没有文章。往 <code>src/content/posts/</code> 里放一个 Markdown 文件就能看到它。
+      </p>
+    ) : (
+      <ul class="post-grid">
+        {page.data.map((post) => (
+          <PostItem
+            href={postHref(post)}
+            title={post.data.title}
+            description={post.data.description}
+            pubDate={post.data.pubDate}
+            tags={post.data.tags}
+            cover={post.data.cover}
+          />
+        ))}
+      </ul>
+    )
+  }
+
+  {
+    page.lastPage > 1 && (
+      <nav class="pagination">
+        {page.url.prev ? (
+          <a href={page.url.prev}>← 上一页</a>
+        ) : (
+          <span class="pagination__disabled">← 上一页</span>
+        )}
+        <span>
+          第 {page.currentPage} / {page.lastPage} 页
+        </span>
+        {page.url.next ? (
+          <a href={page.url.next}>下一页 →</a>
+        ) : (
+          <span class="pagination__disabled">下一页 →</span>
+        )}
+      </nav>
+    )
+  }
+</BaseLayout>

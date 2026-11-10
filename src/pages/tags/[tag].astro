@@ -1,0 +1,34 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostItem from '../../components/PostItem.astro';
+import { getAllPosts, groupByTag, postHref } from '../../utils/posts';
+
+export async function getStaticPaths() {
+  const posts = await getAllPosts();
+  return [...groupByTag(posts).entries()].map(([tag, list]) => ({
+    params: { tag },
+    props: { tag, posts: list },
+  }));
+}
+
+const { tag, posts } = Astro.props;
+---
+
+<BaseLayout title={`标签：${tag}`} description={`标签 ${tag} 下的全部文章`}>
+  <h1 class="page-title">#{tag}</h1>
+  <p class="page-subtitle">{posts.length} 篇文章</p>
+
+  <ul class="post-list">
+    {
+      posts.map((post: any) => (
+        <PostItem
+          href={postHref(post)}
+          title={post.data.title}
+          description={post.data.description}
+          pubDate={post.data.pubDate}
+          tags={post.data.tags}
+        />
+      ))
+    }
+  </ul>
+</BaseLayout>

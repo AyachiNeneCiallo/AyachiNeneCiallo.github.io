@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAllPosts, groupByTag } from '../../utils/posts';
+import { withBase } from '../../utils/url';
+
+const posts = await getAllPosts();
+const tags = [...groupByTag(posts).entries()];
+---
+
+<BaseLayout title="标签" description="按标签浏览文章">
+  <h1 class="page-title">标签</h1>
+  <p class="page-subtitle">共 {tags.length} 个标签</p>
+
+  {
+    tags.length === 0 ? (
+      <p class="empty-hint">还没有标签。在文章 frontmatter 里写 tags 即可。</p>
+    ) : (
+      <ul class="tag-cloud">
+        {tags.map(([tag, list]) => (
+          <li>
+            <a class="tag" href={withBase(`/tags/${tag}/`)}>
+              {tag}<span class="count">{list.length}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</BaseLayout>

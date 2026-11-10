@@ -1,0 +1,740 @@
+---
+/**
+ * 右下角可拖动的站点助手：点头像弹台词气泡，点搜索按钮搜站内文章。
+ */
+import { assistantConfig } from '../assistant.config';
+---
+
+<div
+  class="assistant"
+  id="site-assistant"
+  data-greetings={JSON.stringify(assistantConfig.greetings)}
+  data-sounds={JSON.stringify(assistantConfig.sounds)}
+  data-volume={String(assistantConfig.soundVolume)}
+  data-avoid-repeat={String(assistantConfig.avoidRepeat)}
+  data-duration={String(assistantConfig.bubbleDuration)}
+  data-threshold={String(assistantConfig.dragThreshold)}
+  data-default-x={String(assistantConfig.defaultOffset.x)}
+  data-default-y={String(assistantConfig.defaultOffset.y)}
+>
+  <div class="assistant__bubble" data-bubble hidden role="status">
+    <span data-bubble-text></span>
+  </div>
+
+  <div class="assistant__panel" data-panel hidden>
+    <form class="assistant__search" data-search-form role="search">
+      <input
+        class="assistant__input"
+        type="search"
+        name="q"
+        autocomplete="off"
+        placeholder={assistantConfig.search.placeholder}
+        aria-label="站内搜索"
+        data-search-input
+      />
+      <button class="assistant__close" type="button" aria-label="关闭搜索" data-panel-close>
+        ✕
+      </button>
+    </form>
+    <div class="assistant__hint" data-search-hint>{assistantConfig.search.shortcutHint}</div>
+    <ul class="assistant__results" data-search-results></ul>
+  </div>
+
+  <div class="assistant__dock" data-dock>
+    <button
+      class="assistant__mini assistant__mute-btn"
+      type="button"
+      aria-label="静音"
+      title="静音"
+      aria-pressed="false"
+      data-mute-toggle
+    >
+      <svg class="icon-sound" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+        <path d="M4 9.5h3l4-3.5v12l-4-3.5H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+        <path d="M15.5 9a4 4 0 0 1 0 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        <path d="M18 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+      <svg class="icon-muted" viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+        <path d="M4 9.5h3l4-3.5v12l-4-3.5H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+        <path d="M15.5 9.5l5 5M20.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+    </button>
+
+    <button
+      class="assistant__mini assistant__search-btn"
+      type="button"
+      aria-label="搜索站内文章"
+      title="搜索站内文章"
+      data-search-toggle
+    >
+      <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+        <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2" />
+        <path d="M16 16l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+    </button>
+
+    <button class="assistant__avatar" type="button" aria-label="和助手打个招呼" title="点我一下" data-avatar>
+      <img
+        src={`${import.meta.env.BASE_URL}${assistantConfig.avatar.replace(/^\//, '')}`}
+        alt="站点助手"
+        draggable="false"
+      />
+    </button>
+  </div>
+</div>
+
+<style>
+  .assistant {
+    position: fixed;
+    right: var(--a-x, 24px);
+    bottom: var(--a-y, 24px);
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    touch-action: none;
+  }
+
+  .assistant__dock {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.4rem;
+    cursor: grab;
+  }
+
+  .assistant.is-dragging,
+  .assistant.is-dragging .assistant__dock {
+    cursor: grabbing;
+  }
+
+  .assistant__avatar {
+    padding: 0;
+    border: 0;
+    background: none;
+    width: 88px;
+    height: 104px;
+    cursor: inherit;
+    filter: drop-shadow(0 6px 14px rgb(0 0 0 / 22%));
+    transition: transform 0.18s ease;
+  }
+
+  .assistant__avatar:hover {
+    transform: translateY(-2px) scale(1.03);
+  }
+
+  .assistant__avatar:active {
+    transform: scale(0.97);
+  }
+
+  .assistant__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 0;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* 头像左边的小圆按钮（静音 / 搜索） */
+  .assistant__mini {
+    margin-bottom: 0.6rem;
+    width: 2.1rem;
+    height: 2.1rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    color: var(--color-text-soft);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
+    cursor: pointer;
+    transition: color 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+  }
+
+  .assistant__mini:hover {
+    color: var(--color-accent);
+    transform: translateY(-1px);
+  }
+
+  /* 静音状态：金色描边提示已关闭声音 */
+  .assistant.is-muted .assistant__mute-btn {
+    border-color: var(--color-gold);
+    color: var(--color-accent-strong);
+  }
+
+  .assistant__mute-btn .icon-muted {
+    display: none;
+  }
+
+  .assistant.is-muted .assistant__mute-btn .icon-sound {
+    display: none;
+  }
+
+  .assistant.is-muted .assistant__mute-btn .icon-muted {
+    display: block;
+  }
+
+  /* ---------- 台词气泡 ---------- */
+
+  .assistant__bubble {
+    position: relative;
+    max-width: 15rem;
+    padding: 0.5rem 0.8rem;
+    border-radius: 12px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--color-text);
+    white-space: nowrap;
+    animation: bubble-in 0.22s ease-out;
+  }
+
+  .assistant__bubble::after {
+    content: '';
+    position: absolute;
+    right: 1.9rem;
+    bottom: -5px;
+    width: 9px;
+    height: 9px;
+    background: var(--color-bg);
+    border-right: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    transform: rotate(45deg);
+  }
+
+  @keyframes bubble-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* ---------- 搜索面板 ---------- */
+
+  .assistant__panel {
+    width: min(21rem, calc(100vw - 2rem));
+    max-height: min(60vh, 26rem);
+    display: flex;
+    flex-direction: column;
+    padding: 0.6rem;
+    border-radius: var(--radius);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 12px 32px rgb(0 0 0 / 16%);
+    animation: bubble-in 0.18s ease-out;
+    touch-action: auto;
+  }
+
+  .assistant__search {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .assistant__input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.42rem 0.6rem;
+    font: inherit;
+    font-size: 0.88rem;
+    color: var(--color-text);
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    outline: none;
+  }
+
+  .assistant__input:focus {
+    border-color: var(--color-accent);
+  }
+
+  .assistant__close {
+    width: 1.6rem;
+    height: 1.6rem;
+    flex: none;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-text-soft);
+    cursor: pointer;
+    font-size: 0.8rem;
+    line-height: 1;
+  }
+
+  .assistant__close:hover {
+    background: var(--color-bg-soft);
+    color: var(--color-text);
+  }
+
+  .assistant__hint {
+    padding: 0.35rem 0.2rem 0;
+    font-size: 0.74rem;
+    color: var(--color-text-soft);
+  }
+
+  .assistant__results {
+    list-style: none;
+    margin: 0.4rem 0 0;
+    padding: 0;
+    overflow-y: auto;
+  }
+
+  /* 结果列表由 JS 动态创建，没有 Astro 的 scope 属性，必须用 :global */
+  .assistant__results :global(li + li) {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .assistant__results :global(a) {
+    display: block;
+    padding: 0.5rem 0.35rem;
+    color: var(--color-text);
+    border-radius: 6px;
+    text-decoration: none;
+  }
+
+  .assistant__results :global(a:hover) {
+    background: var(--color-bg-soft);
+    text-decoration: none;
+  }
+
+  .assistant__results :global(.assistant__result-title) {
+    font-size: 0.88rem;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+
+  .assistant__results :global(.assistant__result-meta) {
+    margin-top: 0.15rem;
+    font-size: 0.72rem;
+    color: var(--color-text-soft);
+  }
+
+  .assistant__results :global(.assistant__empty) {
+    padding: 0.7rem 0.35rem;
+    font-size: 0.82rem;
+    color: var(--color-text-soft);
+  }
+
+  @media (max-width: 480px) {
+    .assistant__avatar {
+      width: 68px;
+      height: 82px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .assistant__avatar,
+    .assistant__bubble,
+    .assistant__panel {
+      animation: none;
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import { assistantConfig } from '../assistant.config';
+
+  interface SearchEntry {
+    title: string;
+    description: string;
+    tags: string[];
+    date: string;
+    url: string;
+    body: string;
+  }
+
+  const root = document.getElementById('site-assistant');
+  if (root) {
+    const bubble = root.querySelector<HTMLElement>('[data-bubble]')!;
+    const bubbleText = root.querySelector<HTMLElement>('[data-bubble-text]')!;
+    const panel = root.querySelector<HTMLElement>('[data-panel]')!;
+    const dock = root.querySelector<HTMLElement>('[data-dock]')!;
+    const searchToggle = root.querySelector<HTMLButtonElement>('[data-search-toggle]')!;
+    const searchForm = root.querySelector<HTMLFormElement>('[data-search-form]')!;
+    const searchInput = root.querySelector<HTMLInputElement>('[data-search-input]')!;
+    const results = root.querySelector<HTMLUListElement>('[data-search-results]')!;
+    const hint = root.querySelector<HTMLElement>('[data-search-hint]')!;
+    const closeBtn = root.querySelector<HTMLButtonElement>('[data-panel-close]')!;
+
+    /** 台词池：从 data-greetings 读，解析失败时退回默认一句 */
+    const greetings: string[] = (() => {
+      try {
+        const raw = JSON.parse(root.dataset.greetings ?? '[]');
+        if (Array.isArray(raw) && raw.length > 0) return raw as string[];
+      } catch {
+        /* ignore */
+      }
+      return ['Ciallo～(∠・ω< )⌒★'];
+    })();
+    const avoidRepeat = root.dataset.avoidRepeat !== 'false';
+    let lastGreeting = '';
+
+    /** 语音池：点击时随机播放一条，空数组则不出声 */
+    const sounds: string[] = (() => {
+      try {
+        const raw = JSON.parse(root.dataset.sounds ?? '[]');
+        if (Array.isArray(raw)) return (raw as string[]).filter(Boolean);
+      } catch {
+        /* ignore */
+      }
+      return [];
+    })();
+    const soundVolume = Number(root.dataset.volume ?? 1);
+    let lastSound = -1;
+    const audioCache = new Map<string, HTMLAudioElement>();
+    const bubbleDuration = Number(root.dataset.duration ?? 4000);
+    const threshold = Number(root.dataset.threshold ?? 6);
+    const defaultX = Number(root.dataset.defaultX ?? 24);
+    const defaultY = Number(root.dataset.defaultY ?? 24);
+    const STORAGE_KEY = 'assistant-pos';
+    const MUTE_KEY = 'assistant-muted';
+
+    /* ---------------- 静音开关 ---------------- */
+
+    const muteBtn = root.querySelector<HTMLButtonElement>('[data-mute-toggle]')!;
+
+    const isMuted = (): boolean => {
+      try {
+        return localStorage.getItem(MUTE_KEY) === 'true';
+      } catch {
+        return false;
+      }
+    };
+
+    function applyMute(muted: boolean) {
+      root!.classList.toggle('is-muted', muted);
+      muteBtn.setAttribute('aria-pressed', String(muted));
+      const label = muted ? '取消静音' : '静音';
+      muteBtn.setAttribute('aria-label', label);
+      muteBtn.title = label;
+      // 静音时停掉正在播的声音
+      if (muted) {
+        audioCache.forEach((audio) => {
+          audio.pause();
+          audio.currentTime = 0;
+        });
+      }
+    }
+
+    muteBtn.addEventListener('click', () => {
+      const next = !root.classList.contains('is-muted');
+      try {
+        localStorage.setItem(MUTE_KEY, String(next));
+      } catch {
+        /* ignore */
+      }
+      applyMute(next);
+    });
+
+    applyMute(isMuted());
+
+    /* ---------------- 位置：拖动 + 记忆 ---------------- */
+
+    const clamp = (value: number, min: number, max: number) =>
+      Math.min(Math.max(value, min), max);
+
+    function applyPosition(x: number, y: number) {
+      root!.style.setProperty('--a-x', `${x}px`);
+      root!.style.setProperty('--a-y', `${y}px`);
+    }
+
+    function loadPosition() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
+        if (saved && typeof saved.x === 'number' && typeof saved.y === 'number') {
+          return saved as { x: number; y: number };
+        }
+      } catch {
+        /* ignore */
+      }
+      return { x: defaultX, y: defaultY };
+    }
+
+    let pos = loadPosition();
+    applyPosition(pos.x, pos.y);
+
+    window.addEventListener('resize', () => {
+      const maxX = Math.max(0, window.innerWidth - dock.offsetWidth - 8);
+      const maxY = Math.max(0, window.innerHeight - dock.offsetHeight - 8);
+      pos = { x: clamp(pos.x, 8, maxX), y: clamp(pos.y, 8, maxY) };
+      applyPosition(pos.x, pos.y);
+    });
+
+    let dragging = false;
+    let moved = false;
+    let pressedAvatar = false;
+    let startPointer = { x: 0, y: 0 };
+    let startPos = { x: 0, y: 0 };
+
+    dock.addEventListener('pointerdown', (event: PointerEvent) => {
+      if (event.button !== 0) return;
+      const target = event.target as HTMLElement;
+      // 头像以外的小按钮（静音 / 搜索）不参与拖动，否则 click 会被指针捕获吃掉
+      if (target.closest('[data-mini]') || target.closest('[data-search-toggle]') || target.closest('[data-mute-toggle]')) return;
+      dragging = true;
+      moved = false;
+      pressedAvatar = Boolean(target.closest('[data-avatar]'));
+      startPointer = { x: event.clientX, y: event.clientY };
+      startPos = { ...pos };
+      dock.setPointerCapture(event.pointerId);
+    });
+
+    dock.addEventListener('pointermove', (event: PointerEvent) => {
+      if (!dragging) return;
+      const dx = event.clientX - startPointer.x;
+      const dy = event.clientY - startPointer.y;
+      if (!moved && Math.hypot(dx, dy) < threshold) return;
+      moved = true;
+      root.classList.add('is-dragging');
+      const maxX = Math.max(0, window.innerWidth - dock.offsetWidth - 8);
+      const maxY = Math.max(0, window.innerHeight - dock.offsetHeight - 8);
+      pos = {
+        x: clamp(startPos.x - dx, 8, maxX),
+        y: clamp(startPos.y - dy, 8, maxY),
+      };
+      applyPosition(pos.x, pos.y);
+    });
+
+    const endDrag = (event: PointerEvent) => {
+      if (!dragging) return;
+      dragging = false;
+      root.classList.remove('is-dragging');
+      if (dock.hasPointerCapture(event.pointerId)) {
+        dock.releasePointerCapture(event.pointerId);
+      }
+      if (moved) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(pos));
+      } else if (pressedAvatar) {
+        // setPointerCapture 会把 click 重定向到 dock，所以点击判定放在 pointerup 里
+        showBubble();
+      }
+      pressedAvatar = false;
+    };
+
+    dock.addEventListener('pointerup', endDrag);
+    dock.addEventListener('pointercancel', endDrag);
+
+    /* ---------------- 台词气泡 ---------------- */
+
+    let bubbleTimer: number | undefined;
+
+    /** 从台词池里随机抽一条；avoidRepeat 时尽量不和上一次重复 */
+    function pickGreeting(): string {
+      if (greetings.length === 1) return greetings[0];
+      const pool =
+        avoidRepeat && lastGreeting
+          ? greetings.filter((line) => line !== lastGreeting)
+          : greetings;
+      const source = pool.length > 0 ? pool : greetings;
+      const picked = source[Math.floor(Math.random() * source.length)];
+      lastGreeting = picked;
+      return picked;
+    }
+
+    function showBubble() {
+      bubbleText.textContent = pickGreeting();
+      bubble.hidden = false;
+      window.clearTimeout(bubbleTimer);
+      bubbleTimer = window.setTimeout(() => {
+        bubble.hidden = true;
+      }, bubbleDuration);
+      playRandomSound();
+    }
+
+    /** 随机播一条语音；点击本身就是用户手势，不会被自动播放策略拦截 */
+    function playRandomSound() {
+      if (sounds.length === 0) return;
+      if (root!.classList.contains('is-muted')) return;
+      let pick = Math.floor(Math.random() * sounds.length);
+      if (sounds.length > 1 && pick === lastSound) {
+        pick = (pick + 1) % sounds.length;
+      }
+      lastSound = pick;
+
+      const raw = sounds[pick];
+      const src = /^https?:\/\//.test(raw)
+        ? raw
+        : `${import.meta.env.BASE_URL}${raw.replace(/^\//, '')}`;
+
+      let audio = audioCache.get(src);
+      if (!audio) {
+        audio = new Audio(src);
+        audio.preload = 'auto';
+        audio.volume = clamp(soundVolume, 0, 1);
+        audioCache.set(src, audio);
+      }
+      try {
+        audio.currentTime = 0;
+        const played = audio.play();
+        if (played && typeof played.catch === 'function') {
+          played.catch(() => {
+            /* 浏览器拒绝播放时静默失败，不影响气泡 */
+          });
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    /* ---------------- 站内搜索 ---------------- */
+
+    let index: SearchEntry[] | null = null;
+    let loading: Promise<void> | null = null;
+
+    async function ensureIndex() {
+      if (index) return;
+      if (!loading) {
+        loading = fetch(`${import.meta.env.BASE_URL}search-index.json`)
+          .then((res) => (res.ok ? res.json() : []))
+          .then((data: SearchEntry[]) => {
+            index = Array.isArray(data) ? data : [];
+          })
+          .catch(() => {
+            index = [];
+          });
+      }
+      await loading;
+    }
+
+    function escapeHtml(text: string) {
+      return text.replace(/[&<>"']/g, (ch) => {
+        const map: Record<string, string> = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;',
+        };
+        return map[ch];
+      });
+    }
+
+    function score(entry: SearchEntry, terms: string[]) {
+      const title = entry.title.toLowerCase();
+      const desc = entry.description.toLowerCase();
+      const tags = entry.tags.join(' ').toLowerCase();
+      const body = entry.body.toLowerCase();
+      let total = 0;
+      for (const term of terms) {
+        if (title.includes(term)) total += 10;
+        if (tags.includes(term)) total += 6;
+        if (desc.includes(term)) total += 4;
+        if (body.includes(term)) total += 1;
+      }
+      return total;
+    }
+
+    function render(list: SearchEntry[], query: string) {
+      results.innerHTML = '';
+      if (query.trim() === '') {
+        hint.textContent = assistantConfig.search.shortcutHint;
+        hint.hidden = false;
+        return;
+      }
+      if (list.length === 0) {
+        hint.hidden = true;
+        const empty = document.createElement('li');
+        empty.className = 'assistant__empty';
+        empty.textContent = assistantConfig.search.empty;
+        results.append(empty);
+        return;
+      }
+      hint.hidden = true;
+      const fragment = document.createDocumentFragment();
+      for (const entry of list.slice(0, 8)) {
+        const li = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = entry.url;
+        link.innerHTML = `<div class="assistant__result-title">${escapeHtml(entry.title)}</div>
+          <div class="assistant__result-meta">${escapeHtml(entry.date)}${
+            entry.tags.length ? ' · ' + escapeHtml(entry.tags.join(' / ')) : ''
+          }</div>`;
+        li.append(link);
+        fragment.append(li);
+      }
+      results.append(fragment);
+    }
+
+    let searchToken = 0;
+
+    async function runSearch(query: string) {
+      const token = ++searchToken;
+      const q = query.trim();
+      if (q === '') {
+        render([], '');
+        return;
+      }
+      hint.hidden = false;
+      hint.textContent = assistantConfig.search.loading;
+      await ensureIndex();
+      if (token !== searchToken) return;
+      const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+      const hits = (index ?? [])
+        .map((entry) => ({ entry, s: score(entry, terms) }))
+        .filter((item) => item.s > 0)
+        .sort((a, b) => b.s - a.s)
+        .map((item) => item.entry);
+      render(hits, q);
+    }
+
+    searchInput.addEventListener('input', () => runSearch(searchInput.value));
+    searchForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      runSearch(searchInput.value);
+    });
+
+    function openPanel() {
+      bubble.hidden = true;
+      panel.hidden = false;
+      searchInput.focus();
+      searchInput.select();
+      void ensureIndex();
+    }
+
+    function closePanel() {
+      panel.hidden = true;
+    }
+
+    searchToggle.addEventListener('click', () => {
+      if (panel.hidden) openPanel();
+      else closePanel();
+    });
+
+    closeBtn.addEventListener('click', closePanel);
+
+    document.addEventListener('keydown', (event: KeyboardEvent) => {
+      const el = event.target as HTMLElement | null;
+      const tag = el?.tagName;
+      const typing =
+        tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el?.isContentEditable === true;
+
+      if (event.key === 'Escape' && !panel.hidden) {
+        closePanel();
+        return;
+      }
+      if (event.key === '/' && !typing) {
+        event.preventDefault();
+        openPanel();
+        return;
+      }
+      if ((event.key === 'k' || event.key === 'K') && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        openPanel();
+      }
+    });
+
+    // 点击外部收起搜索面板
+    document.addEventListener('pointerdown', (event: PointerEvent) => {
+      if (panel.hidden) return;
+      if (!root.contains(event.target as Node)) closePanel();
+    });
+  }
+</script>

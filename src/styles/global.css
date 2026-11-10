@@ -1,0 +1,812 @@
+/* ============================================================
+   全局样式 —— 「宁宁」氛围：银白 + 藏蓝 + 淡金
+   ------------------------------------------------------------
+   取色来自角色形象：银白长发、藏蓝制服、金色绶带、
+   以及一点微红的腮红。整体走安静、克制的纸感路线，
+   全部为静态样式，没有动画。
+   换配色只需要改这一段变量。
+   ============================================================ */
+
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono',
+    monospace;
+  --font-serif: 'Songti SC', 'Source Han Serif SC', 'Noto Serif SC', serif;
+
+  /* 底色：纯白（后续可换成背景图） */
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+
+  /* 卡片与次级块 */
+  --color-bg-soft: #f4f2f8;
+  --color-bg-deep: #eeeaf4;
+
+  /* 文字：藏蓝偏黑
+     注：站点有半透明玻璃卡 + 背景图，正文会压在插画上，
+     所以 secondary 文字比普通浅色站更深一档，保证可读性 */
+  --color-text: #2b3142;
+  --color-text-soft: #474e60;
+  --color-text-faint: #6b7284;
+
+  --color-border: #e6e2ee;
+  --color-border-strong: #d6d0e2;
+
+  /* 主色：藏蓝；点缀：淡金；少量腮红 */
+  --color-accent: #47557f;
+  --color-accent-strong: #303c5e;
+  --color-gold: #bfa15c;
+  --color-gold-soft: #e3d4b0;
+  --color-blush: #e6c3cb;
+
+  --content-width: 44rem;
+  --radius: 14px;
+  --radius-sm: 9px;
+
+  --shadow-card: 0 1px 2px rgb(43 49 66 / 4%), 0 12px 32px -12px rgb(43 49 66 / 14%);
+  --shadow-soft: 0 1px 2px rgb(43 49 66 / 5%), 0 6px 18px -10px rgb(43 49 66 / 16%);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.78;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  /* 背景图由 BaseLayout 通过 CSS 变量注入；没配置时 --bg-image 为 none */
+  background-image: var(--bg-image, none);
+  background-size: var(--bg-size, cover);
+  background-position: var(--bg-position, center);
+  background-attachment: var(--bg-attachment, fixed);
+  background-repeat: no-repeat;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 手机竖屏：首页换竖构图背景 + 单独的取景（首页有 .page-head，下方留了
+   人物展示区）。文章页继续用桌面那张安静的背景，避免深色眼睛压在正文后面。 */
+@media (max-width: 640px) {
+  body:has(.page-head) {
+    background-image: var(--bg-image-mobile, var(--bg-image, none));
+    background-size: var(--bg-size-mobile, var(--bg-size, cover));
+    background-position: var(--bg-position-mobile, var(--bg-position, center));
+  }
+
+  /* 文章页等非首页：同一张横构图，缩到最小（高度正好等于视口，
+     上下边缘贴齐页面边缘、不留白边），并向右挪到人物一侧。 */
+  body:not(:has(.page-head)) {
+    background-size: auto 100%;
+    background-position: 26% center;
+  }
+}
+
+/* 背景图之上盖一层半透明白，压低花纹、保证正文可读 */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: rgb(255 255 255 / var(--bg-overlay, 0));
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--color-gold);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+}
+
+/* ---------- 布局 ---------- */
+
+.container {
+  width: 100%;
+  max-width: var(--content-width);
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+/* 通栏：页头用，标题贴左、导航贴右 */
+.container--full {
+  max-width: 100%;
+  padding-inline: clamp(1.25rem, 4vw, 3rem);
+}
+
+main {
+  flex: 1;
+  padding-block: 2.75rem 4.5rem;
+}
+
+/* 内容区做成一张轻盈的玻璃纸卡，背景从四周和卡片里透出来 */
+main > .container {
+  width: calc(100% - 2.5rem);
+  max-width: calc(var(--content-width) + 3.5rem);
+  padding: 2.75rem 2.75rem 3rem;
+  border: 1px solid rgb(255 255 255 / 34%);
+  border-radius: 20px;
+  background: rgb(255 255 255 / 20%);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(4px) saturate(1.08);
+}
+
+/* 宽版：首页卡片网格 */
+main > .container--wide {
+  max-width: calc(var(--content-width) + 22rem);
+}
+
+/* ---------- 页头 ---------- */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid rgb(214 208 226 / 70%);
+  background: rgb(255 255 255 / 82%);
+  backdrop-filter: blur(14px) saturate(1.05);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 3.7rem;
+  flex-wrap: wrap;
+}
+
+.site-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  font-size: 1.06rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--color-text);
+}
+
+/* 页头左侧的小图标（用助手头像，竖图，按高度适配） */
+.site-title__logo {
+  width: auto;
+  height: 2rem;
+  flex: none;
+  border-radius: 0;
+  object-fit: contain;
+}
+
+/* 标题左侧一小段金色竖线，像绶带的边缘 */
+.site-title__text::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 0.95em;
+  margin-right: 0.5rem;
+  border-radius: 2px;
+  vertical-align: -0.08em;
+  background: linear-gradient(
+    180deg,
+    var(--color-gold) 0%,
+    var(--color-gold-soft) 55%,
+    var(--color-blush) 100%
+  );
+}
+
+.site-title:hover {
+  color: var(--color-accent-strong);
+  text-decoration: none;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  font-size: 0.92rem;
+}
+
+.site-nav a {
+  position: relative;
+  padding-block: 0.2rem;
+  color: var(--color-text-soft);
+  transition: color 0.18s ease;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current='page'] {
+  color: var(--color-accent-strong);
+  text-decoration: none;
+}
+
+/* 当前页下方一道短线，替代高亮块 */
+.site-nav a[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.1rem;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-gold);
+}
+
+/* ---------- 手机端折叠菜单 ---------- */
+
+/* 默认（桌面）不显示，沿用上面的横向导航 */
+.site-menu {
+  display: none;
+  position: relative;
+  font-size: 0.92rem;
+}
+
+/* 只有图标的圆形按钮，风格与配色变量一致 */
+.site-menu__toggle {
+  display: inline-grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  background: var(--color-surface);
+  color: var(--color-text-soft);
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.site-menu__toggle:hover,
+.site-menu.is-open .site-menu__toggle {
+  border-color: var(--color-gold);
+  background: var(--color-bg-soft);
+  color: var(--color-accent-strong);
+}
+
+.site-menu__toggle:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+}
+
+/* 下拉面板：与卡片同样的描边、圆角和阴影 */
+.site-menu__panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 20;
+  min-width: 8.5rem;
+  padding: 0.35rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.site-menu__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-menu__link {
+  display: block;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-soft);
+  white-space: nowrap;
+  transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.site-menu__link:hover {
+  background: var(--color-bg-soft);
+  color: var(--color-accent-strong);
+  text-decoration: none;
+}
+
+/* 当前页：左侧金色竖线，和标题的绶带元素呼应 */
+.site-menu__link[aria-current='page'] {
+  color: var(--color-accent-strong);
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: inset 2px 0 0 var(--color-gold);
+}
+
+/* 窄屏：横向导航换成菜单 */
+@media (max-width: 640px) {
+  .site-nav {
+    display: none;
+  }
+
+  .site-menu {
+    display: block;
+  }
+}
+/* ---------- 标题区 ---------- */
+
+.page-title {
+  position: relative;
+  margin: 0 0 0.55rem;
+  padding-bottom: 0.75rem;
+  font-family: var(--font-serif);
+  font-size: 1.62rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* 标题下的金色细装饰线 */
+.page-title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2.6rem;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--color-gold), transparent);
+}
+
+.page-subtitle {
+  margin: 0 0 2.2rem;
+  color: var(--color-text-soft);
+  font-size: 0.92rem;
+}
+
+.section-title {
+  margin: 2.6rem 0 0.9rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+}
+
+/* ---------- 文章卡片网格（首页） ---------- */
+
+.post-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.post-card {
+  display: flex;
+}
+
+.post-card__link {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: inherit;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.post-card__link:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-card);
+  text-decoration: none;
+}
+
+/* 封面：固定比例，图片铺满裁切 */
+.post-card__cover {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--color-bg-soft);
+}
+
+.post-card__cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  transition: transform 0.35s ease;
+}
+
+.post-card__link:hover .post-card__cover img {
+  transform: scale(1.04);
+}
+
+/* 没有封面时的占位：首字 + 渐变底 */
+.post-card__cover-fallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-serif);
+  font-size: 2.4rem;
+  font-weight: 600;
+  color: rgb(43 49 66 / 22%);
+  user-select: none;
+}
+
+.post-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.85rem 0.9rem 1rem;
+}
+
+.post-card__title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  transition: color 0.18s ease;
+}
+
+.post-card__link:hover .post-card__title {
+  color: var(--color-accent-strong);
+}
+
+.post-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.5rem;
+  margin-top: auto;
+  font-size: 0.78rem;
+  color: var(--color-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.post-card__desc {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.post-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.32rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 卡片上的彩色小标签，参照 TouchGal 的胶囊样式 */
+.tag-pill {
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgb(71 85 127 / 22%);
+  background: rgb(71 85 127 / 11%);
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.65;
+  color: var(--color-accent-strong);
+  white-space: nowrap;
+}
+
+/* 移动端：两列 */
+@media (max-width: 720px) {
+  .post-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.9rem;
+  }
+
+  .post-card__title {
+    font-size: 0.92rem;
+  }
+
+  .post-card__body {
+    padding: 0.7rem 0.7rem 0.85rem;
+  }
+}
+
+/* 小屏：单列 */
+@media (max-width: 460px) {
+  .post-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* ---------- 标签 ---------- */
+
+.tag {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 70%);
+  font-size: 0.76rem;
+  line-height: 1.6;
+  color: var(--color-text-soft);
+  transition: border-color 0.18s ease, color 0.18s ease;
+}
+
+.tag:hover {
+  border-color: var(--color-gold);
+  color: var(--color-accent-strong);
+  text-decoration: none;
+}
+
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag-cloud .count {
+  margin-left: 0.2rem;
+  font-size: 0.7rem;
+  opacity: 0.62;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 正文 ---------- */
+
+.prose {
+  font-size: 1rem;
+}
+
+.prose h2,
+.prose h3,
+.prose h4 {
+  margin-top: 2.1em;
+  margin-bottom: 0.65em;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+}
+
+.prose h2 {
+  padding-bottom: 0.4em;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 1.32rem;
+}
+
+.prose h3 {
+  font-size: 1.14rem;
+}
+
+.prose p,
+.prose ul,
+.prose ol {
+  margin: 1em 0;
+}
+
+.prose blockquote {
+  margin: 1.5em 0;
+  padding: 0.7em 1.1em;
+  border-left: 2px solid var(--color-gold-soft);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: rgb(244 242 248 / 60%);
+  color: var(--color-text-soft);
+}
+
+.prose code {
+  padding: 0.14em 0.36em;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  background: var(--color-bg-soft);
+  font-family: var(--font-mono);
+  font-size: 0.87em;
+}
+
+.prose pre {
+  overflow-x: auto;
+  padding: 1.05rem 1.15rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: #fbfafd;
+  box-shadow: var(--shadow-soft);
+  font-size: 0.85rem;
+  line-height: 1.65;
+}
+
+.prose pre code {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: inherit;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.prose th,
+.prose td {
+  padding: 0.5rem 0.72rem;
+  border: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.prose th {
+  background: var(--color-bg-soft);
+  font-weight: 600;
+}
+
+.prose hr {
+  margin: 2.6em 0;
+  border: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-border-strong) 20%,
+    var(--color-border-strong) 80%,
+    transparent
+  );
+}
+
+/* ---------- 文章页头 ---------- */
+
+.post-header {
+  margin-bottom: 2.3rem;
+  padding-bottom: 1.3rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.post-header h1 {
+  margin: 0 0 0.7rem;
+  font-family: var(--font-serif);
+  font-size: 1.78rem;
+  font-weight: 600;
+  line-height: 1.42;
+  letter-spacing: 0.01em;
+}
+
+.post-header__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.8rem;
+  font-size: 0.81rem;
+  color: var(--color-text-faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 分页 ---------- */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2.6rem;
+  padding-top: 1.3rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.87rem;
+  color: var(--color-text-soft);
+}
+
+.pagination a {
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+}
+
+.pagination a:hover {
+  background: var(--color-bg-soft);
+  text-decoration: none;
+}
+
+.pagination__disabled {
+  opacity: 0.35;
+}
+
+/* ---------- 页脚 ---------- */
+
+.site-footer {
+  padding-block: 1.6rem 2rem;
+  font-size: 0.81rem;
+  color: var(--color-text-faint);
+}
+
+.site-footer__inner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.site-footer nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.1rem;
+}
+
+/* 「友链：」标签 */
+.site-footer__label {
+  color: var(--color-text-faint);
+}
+
+.site-footer a {
+  color: var(--color-text-soft);
+}
+
+/* ---------- 杂项 ---------- */
+
+.empty-hint {
+  color: var(--color-text-soft);
+  font-size: 0.92rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* hidden 属性优先于任何 display 设置（搜索面板等组件用到） */
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- 小屏 ---------- */
+
+@media (max-width: 640px) {
+  main {
+    padding-block: 1.4rem 3rem;
+  }
+
+  /* 手机屏幕上背景会被放大很多，14px 级别的虚化会把人物糊掉，
+     这里单独减一档，让首页展示区里的脸能看清楚 */
+  main > .container {
+    width: calc(100% - 1.6rem);
+    padding: 1.6rem 1.25rem 2.2rem;
+    border-radius: 16px;
+    backdrop-filter: blur(2px) saturate(1.08);
+  }
+
+  .page-title {
+    font-size: 1.42rem;
+  }
+
+  /* 首页标题区下方留一块空白：背景里人物的脸正好落在这里，
+     不会被文章白卡挡住。这是刻意的留白，不是间距没写好。
+     背景是 cover（脸固定在视口 25%~50% 高度），所以空白高度用 vh 算，
+     让下巴正好贴着下面的卡片列表。 */
+  .page-subtitle {
+    margin-bottom: clamp(7rem, calc(50vh - 12.25rem), 17rem);
+  }
+
+  .post-header h1 {
+    font-size: 1.48rem;
+  }
+}

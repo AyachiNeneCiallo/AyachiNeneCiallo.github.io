@@ -1,0 +1,112 @@
+---
+import { withBase } from '../utils/url';
+import { siteConfig } from '../site.config';
+
+const path = Astro.url.pathname.replace(import.meta.env.BASE_URL, '/');
+const isActive = (href: string) =>
+  href === '/' ? path === '/' : path.startsWith(href);
+---
+
+<header class="site-header">
+  <div class="container container--full site-header__inner">
+    <a class="site-title" href={withBase('/')}>
+      <img
+        class="site-title__logo"
+        src={`${import.meta.env.BASE_URL}assistant.png`}
+        alt=""
+        width="32"
+        height="32"
+      />
+      <span class="site-title__text">{siteConfig.title}</span>
+    </a>
+
+    {/* 桌面端：横向导航（保持原样） */}
+    <nav class="site-nav">
+      {
+        siteConfig.nav.map((item) => (
+          <a
+            href={withBase(item.href)}
+            aria-current={isActive(item.href) ? 'page' : undefined}
+          >
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    {/* 手机端：折叠菜单 */}
+    <div class="site-menu" data-menu>
+      <button
+        class="site-menu__toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="site-menu-list"
+        aria-label="打开菜单"
+        data-menu-toggle
+      >
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path
+            d="M4 7h16M4 12h16M4 17h16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </svg>
+      </button>
+
+      <nav class="site-menu__panel" id="site-menu-list" aria-label="主菜单" data-menu-panel hidden>
+        <ul class="site-menu__list">
+          {
+            siteConfig.nav.map((item) => (
+              <li>
+                <a
+                  class="site-menu__link"
+                  href={withBase(item.href)}
+                  aria-current={isActive(item.href) ? 'page' : undefined}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-menu]');
+  if (root) {
+    const toggle = root.querySelector<HTMLButtonElement>('[data-menu-toggle]')!;
+    const panel = root.querySelector<HTMLElement>('[data-menu-panel]')!;
+
+    const setOpen = (open: boolean) => {
+      panel.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+      root.classList.toggle('is-open', open);
+    };
+
+    toggle.addEventListener('click', () => setOpen(panel.hidden));
+
+    // 点菜单外的任意地方收起
+    document.addEventListener('pointerdown', (event) => {
+      if (panel.hidden) return;
+      if (!root.contains(event.target as Node)) setOpen(false);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !panel.hidden) {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+
+    // 从窄屏放大到宽屏时，收起面板，避免残留打开状态
+    const wide = window.matchMedia('(min-width: 641px)');
+    wide.addEventListener('change', (e) => {
+      if (e.matches) setOpen(false);
+    });
+  }
+</script>

@@ -1,0 +1,24 @@
+---
+import { siteConfig } from '../site.config';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <span>© {year} {siteConfig.author}</span>
+    <!-- 友链区：内容在 src/site.config.ts 的 friends 里配置 -->
+    {
+      siteConfig.friends.length > 0 && (
+        <nav class="site-footer__links" aria-label="友链">
+          <span class="site-footer__label">友链：</span>
+          {siteConfig.friends.map((item) => (
+            <a href={item.href} rel="noopener" target="_blank" title={item.label}>
+              {item.label}
+            </a>
+          ))}
+        </nav>
+      )
+    }
+  </div>
+</footer>

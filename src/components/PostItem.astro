@@ -1,0 +1,66 @@
+---
+import { withBase, formatDate } from '../utils/url';
+
+interface Props {
+  href: string;
+  title: string;
+  description?: string;
+  pubDate: Date;
+  tags?: string[];
+  cover?: string;
+}
+
+const { href, title, description, pubDate, tags = [], cover } = Astro.props;
+
+/** 没有封面时，用标题生成一个稳定的渐变色块，避免卡片留白 */
+function hueOf(text: string): number {
+  let h = 0;
+  for (let i = 0; i < text.length; i++) h = (h * 31 + text.charCodeAt(i)) % 360;
+  return h;
+}
+const hue = hueOf(title);
+const placeholder = `linear-gradient(135deg, hsl(${hue} 42% 92%), hsl(${(hue + 38) % 360} 38% 86%))`;
+
+/** 外链图片原样用，站内路径补 base 前缀 */
+const coverSrc =
+  cover && /^https?:\/\//.test(cover)
+    ? cover
+    : cover
+      ? withBase(cover)
+      : null;
+---
+
+<li class="post-card">
+  <a class="post-card__link" href={withBase(href)}>
+    <div class="post-card__cover" style={coverSrc ? undefined : `background:${placeholder}`}>
+      {
+        coverSrc ? (
+          <img src={coverSrc} alt="" loading="lazy" decoding="async" />
+        ) : (
+          <span class="post-card__cover-fallback" aria-hidden="true">
+            {title.slice(0, 1)}
+          </span>
+        )
+      }
+    </div>
+
+    <div class="post-card__body">
+      <h2 class="post-card__title">{title}</h2>
+
+      <div class="post-card__meta">
+        <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+        {description && <span class="post-card__desc">{description}</span>}
+      </div>
+
+      {
+        tags.length > 0 && (
+          <ul class="post-card__tags">
+            {tags.map((tag) => (
+              <li class="tag-pill">{tag}</li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </a>
+</li>

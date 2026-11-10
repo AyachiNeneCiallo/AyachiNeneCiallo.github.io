@@ -1,0 +1,49 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getAllPosts, postHref } from '../../utils/posts';
+import { formatDate, withBase } from '../../utils/url';
+
+export async function getStaticPaths() {
+  const posts = await getAllPosts();
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const { title, description, pubDate, updatedDate, tags } = post.data;
+---
+
+<BaseLayout title={title} description={description}>
+  <article>
+    <header class="post-header">
+      <h1>{title}</h1>
+      <div class="post-header__meta">
+        <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+        {updatedDate && <span>· 更新于 {formatDate(updatedDate)}</span>}
+        {
+          tags.length > 0 && (
+            <span>
+              ·
+              {tags.map((tag: string) => (
+                <a class="tag" href={withBase(`/tags/${tag}/`)}>
+                  {tag}
+                </a>
+              ))}
+            </span>
+          )
+        }
+      </div>
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+
+  <nav class="pagination">
+    <a href={withBase('/')}>← 返回列表</a>
+  </nav>
+</BaseLayout>

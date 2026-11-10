@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../site.config';
+
+const { author, github, emailImage, emailLabel } = siteConfig;
+---
+
+<BaseLayout title="关于" description={`关于 ${author} 和这个博客`}>
+  <h1 class="page-title">关于</h1>
+  <p class="page-subtitle">Ciallo～(∠・ω< )⌒★</p>
+
+  <div class="prose">
+    <p>
+      你好，我是 {author}。这里是我的个人博客，用来放平时的记录、
+      折腾笔记和一些想到就写下来的东西。
+    </p>
+
+    <p>想到什么写什么，更新随缘。</p>
+
+    <h2>联系我</h2>
+    <ul>
+      <li>
+        GitHub：<a href={github} rel="noopener" target="_blank">{github}</a>
+      </li>
+      <li class="contact-email">
+        邮箱：
+        <img
+          class="email-image"
+          src={`${import.meta.env.BASE_URL}${emailImage.replace(/^\//, '')}`}
+          alt={emailLabel}
+          width="471"
+          height="38"
+          loading="lazy"
+        />
+      </li>
+    </ul>
+  </div>
+</BaseLayout>
+
+<style>
+  .contact-email {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  /* 图片是 4 倍图，用 CSS 缩到与正文接近的大小 */
+  .email-image {
+    width: auto;
+    height: 0.95em;
+    border-radius: 0;
+    vertical-align: -0.12em;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+</style>
