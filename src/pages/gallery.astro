@@ -1,0 +1,97 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+/**
+ * 图集：自动扫描 public/gallery/ 目录。
+ * 往这个文件夹里丢图片（webp / png / jpg / gif / avif），构建后就会出现在这里，
+ * 文件名排序决定展示顺序，所以习惯用 01-、02- 前缀。
+ */
+const EXT = /\.(webp|png|jpe?g|gif|avif)$/i;
+const dir = path.join(process.cwd(), 'public', 'gallery');
+const files = fs.existsSync(dir)
+  ? fs
+      .readdirSync(dir)
+      .filter((f) => EXT.test(f))
+      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true }))
+  : [];
+
+/** 从文件名里取一个好看的标题：去掉扩展名和 01- 前缀，把 - _ 换成空格 */
+const titleOf = (file: string) =>
+  decodeURIComponent(file)
+    .replace(EXT, '')
+    .replace(/^\d+[-_]/, '')
+    .replace(/[-_]+/g, ' ');
+
+const base = import.meta.env.BASE_URL;
+const items = files.map((f) => ({
+  src: `${base}gallery/${encodeURIComponent(f)}`,
+  title: titleOf(f),
+  file: f,
+}));
+---
+
+<BaseLayout wide title="图集" description="站里用到的插画和立绘">
+  <section class="page-head">
+    <h1 class="page-title">图集</h1>
+    <p class="page-subtitle">
+      共 {items.length} 张。放进 <code>public/gallery/</code> 的图片会自动出现在这里。<br>
+      <a href="https://www.pixiv.net/users/88855071" target="_blank" rel="noopener noreferrer" style="text-decoration:none;opacity:0.1">
+      <s>想来点涩图?</s>
+      </a>
+    </p>
+  </section>
+
+  {
+    items.length === 0 ? (
+      <p class="empty-hint">public/gallery/ 还是空的，丢几张图进去就有了。</p>
+    ) : (
+      <ul class="gallery-grid">
+        {items.map((item, i) => (
+          <li class="gallery-item">
+            <button
+              class="gallery-item__btn"
+              type="button"
+              data-gallery-src={item.src}
+              data-gallery-title={item.title}
+              data-gallery-index={i}
+            >
+              <img src={item.src} alt={item.title} loading={i < 4 ? 'eager' : 'lazy'} decoding="async" />
+            </button>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+
+  <dialog class="lightbox" data-lightbox>
+    <button class="lightbox__close" type="button" aria-label="关闭" data-lightbox-close>×</button>
+    <img class="lightbox__img" alt="" data-lightbox-img />
+    <p class="lightbox__caption" data-lightbox-caption></p>
+  </dialog>
+</BaseLayout>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('[data-lightbox]');
+  const img = document.querySelector<HTMLImageElement>('[data-lightbox-img]');
+  const caption = document.querySelector<HTMLElement>('[data-lightbox-caption]');
+
+  if (dialog && img && caption) {
+    document.querySelectorAll<HTMLButtonElement>('[data-gallery-src]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        img.src = btn.dataset.gallerySrc ?? '';
+        img.alt = btn.dataset.galleryTitle ?? '';
+        caption.textContent = btn.dataset.galleryTitle ?? '';
+        dialog.showModal();
+      });
+    });
+
+    dialog.addEventListener('click', (event) => {
+      // 点黑色背景（dialog 自身）或关闭按钮都关闭
+      if (event.target === dialog) dialog.close();
+    });
+
+    document.querySelector('[data-lightbox-close]')?.addEventListener('click', () => dialog.close());
+  }
+</script>

@@ -19,7 +19,7 @@ const { page } = Astro.props;
 
 <BaseLayout wide>
   {page.currentPage === 1 && (
-    <section class="page-head">
+    <section class="page-head page-head--home">
       <h1 class="page-title">{siteConfig.title}</h1>
       <p class="page-subtitle">{siteConfig.description}</p>
     </section>

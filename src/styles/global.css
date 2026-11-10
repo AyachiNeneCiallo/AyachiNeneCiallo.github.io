@@ -80,15 +80,15 @@ body {
 /* 手机竖屏：首页换竖构图背景 + 单独的取景（首页有 .page-head，下方留了
    人物展示区）。文章页继续用桌面那张安静的背景，避免深色眼睛压在正文后面。 */
 @media (max-width: 640px) {
-  body:has(.page-head) {
+  body:has(.page-head--home) {
     background-image: var(--bg-image-mobile, var(--bg-image, none));
     background-size: var(--bg-size-mobile, var(--bg-size, cover));
     background-position: var(--bg-position-mobile, var(--bg-position, center));
   }
 
-  /* 文章页等非首页：同一张横构图，缩到最小（高度正好等于视口，
+  /* 非首页（文章 / 标签 / 图集 / 关于）：同一张横构图，缩到最小（高度正好等于视口，
      上下边缘贴齐页面边缘、不留白边），并向右挪到人物一侧。 */
-  body:not(:has(.page-head)) {
+  body:not(:has(.page-head--home)) {
     background-size: auto 100%;
     background-position: 26% center;
   }
@@ -191,12 +191,39 @@ main > .container--wide {
 }
 
 /* 页头左侧的小图标（用助手头像，竖图，按高度适配） */
+.site-title__logo-link {
+  display: inline-flex;
+  flex: none;
+  border-radius: 10px;
+  transition: background-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.site-title__logo-link:hover {
+  background: rgb(71 85 127 / 8%);
+  text-decoration: none;
+}
+
+.site-title__logo-link:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
 .site-title__logo {
   width: auto;
   height: 2rem;
   flex: none;
   border-radius: 0;
   object-fit: contain;
+}
+
+.site-title__text {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text);
+}
+
+.site-title__text:hover {
+  text-decoration: none;
 }
 
 /* 标题左侧一小段金色竖线，像绶带的边缘 */
@@ -778,6 +805,124 @@ main > .container--wide {
   display: none !important;
 }
 
+/* 文章里的站点截图（figure 包裹，不进图库） */
+.site-shot {
+  margin: 1.1rem 0 0;
+}
+
+.site-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+}
+
+/* ---------- 图集 ---------- */
+
+.gallery-grid {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  /* 固定一行 4 张缩略图，窄屏降到 2 张 */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (max-width: 640px) {
+  .gallery-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+  }
+}
+
+.gallery-item__btn {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: rgb(255 255 255 / 70%);
+  overflow: hidden;
+  cursor: zoom-in;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.gallery-item__btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-card);
+}
+
+.gallery-item__btn:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+.gallery-item__btn img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+/* 点开后的大图查看层 */
+.lightbox {
+  padding: 0;
+  border: none;
+  border-radius: var(--radius);
+  background: rgb(24 26 34 / 92%);
+  max-width: min(92vw, 1200px);
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.lightbox::backdrop {
+  background: rgb(20 22 30 / 62%);
+  backdrop-filter: blur(3px);
+}
+
+.lightbox__img {
+  display: block;
+  max-width: 92vw;
+  max-height: 82vh;
+  width: auto;
+  height: auto;
+  margin: 0 auto;
+}
+
+.lightbox__caption {
+  margin: 0;
+  padding: 0.6rem 1rem 0.9rem;
+  color: rgb(255 255 255 / 78%);
+  font-size: 0.86rem;
+  text-align: center;
+}
+
+.lightbox__close {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.5rem;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 14%);
+  color: #fff;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.lightbox__close:hover {
+  background: rgb(255 255 255 / 24%);
+}
+
 /* ---------- 小屏 ---------- */
 
 @media (max-width: 640px) {
@@ -800,9 +945,8 @@ main > .container--wide {
 
   /* 首页标题区下方留一块空白：背景里人物的脸正好落在这里，
      不会被文章白卡挡住。这是刻意的留白，不是间距没写好。
-     背景是 cover（脸固定在视口 25%~50% 高度），所以空白高度用 vh 算，
-     让下巴正好贴着下面的卡片列表。 */
-  .page-subtitle {
+     只对首页生效（.page-head--home），图集/标签等页面不要这块空白。 */
+  .page-head--home .page-subtitle {
     margin-bottom: clamp(7rem, calc(50vh - 12.25rem), 17rem);
   }
 

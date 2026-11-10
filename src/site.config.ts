@@ -50,13 +50,13 @@ export const siteConfig = {
    *                       保证正文可读性。0 = 不盖，1 = 全白。
    */
   background: {
-    image: '/bg.webp' as string | null,
+    image: '/gallery/01-bedroom.webp' as string | null,
     /**
      * 手机端（≤640px）单独用这张背景图。
      * 桌面那张是横构图，竖屏下只能看到人物脸的一角；这张是站姿竖构图，
      * 放进手机上更完整。设 null = 手机也用 image。
      */
-    imageMobile: '/bg-mobile.webp' as string | null,
+    imageMobile: '/gallery/02-standing.webp' as string | null,
     size: 'cover',
     position: 'center',
     /**
