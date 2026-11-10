@@ -42,6 +42,7 @@ ok(JSON.stringify(d.nav) === JSON.stringify(['首页', '标签', '关于']), '�
 ok(d.titleLeft <= 60 && d.vw - d.navRight <= 60, `页头左右贴边 (左${d.titleLeft} 右${d.vw - d.navRight})`);
 ok(d.footerLabel === '友链：', '页脚有「友链：」标签');
 ok(d.footerText.includes('monopolize的博客'), '友链内容: ' + d.footerText);
+ok(d.footerText.includes('星河好困'), '友链包含 星河好困');
 ok(d.footerWidth === 704, `页脚保持原布局宽度 44rem (实际 ${d.footerWidth}px)`);
 ok(d.cols === 4, '桌面 4 列');
 ok(d.icons.length === 4, '图标: ' + d.icons.join(' '));

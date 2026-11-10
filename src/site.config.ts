@@ -33,6 +33,7 @@ export const siteConfig = {
    */
   friends: [
     { label: 'monopolize的博客', href: 'https://monopolize7789.github.io/' },
+    { label: '星河好困', href: 'https://xinghehaokun.github.io/' },
   ] as Array<{ label: string; href: string }>,
   /** 首页每页文章数 */
   pageSize: 10,
