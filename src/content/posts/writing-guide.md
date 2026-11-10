@@ -18,10 +18,10 @@ cover: /covers/writing-guide.webp
 title: 文章标题
 description: 一句话摘要，会显示在列表和 RSS 里
 pubDate: 2026-11-09
-updatedDate: 2026-11-12   # 可选
-tags: ['标签A', '标签B']   # 可选
-draft: false              # true = 只在本地 dev 显示，不会构建上线
-cover: /images/cover.jpg  # 可选，预留给封面图
+updatedDate: 2026-11-12   
+tags: ['标签A', '标签B']   
+draft: false              
+cover: /images/cover.jpg  
 ---
 ```
 
@@ -32,6 +32,6 @@ cover: /images/cover.jpg  # 可选，预留给封面图
 ## 4. 本地预览
 
 ```bash
-npm run dev      # http://localhost:4321
-npm run build    # 产物在 dist/
+npm run dev      
+npm run build    
 ```

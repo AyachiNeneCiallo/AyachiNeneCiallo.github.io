@@ -147,10 +147,14 @@ main > .container {
   width: calc(100% - 2.5rem);
   max-width: calc(var(--content-width) + 3.5rem);
   padding: 2.75rem 2.75rem 3rem;
-  border: 1px solid rgb(255 255 255 / 34%);
+  /* 白色高光边 + 外侧一圈藏蓝细描边，卡片轮廓才立得住 */
+  border: 1px solid rgb(255 255 255 / 62%);
   border-radius: 20px;
   background: rgb(255 255 255 / 20%);
-  box-shadow: var(--shadow-card);
+  box-shadow:
+    0 0 0 1px rgb(71 85 127 / 12%),
+    0 2px 4px rgb(43 49 66 / 7%),
+    0 20px 48px -14px rgb(43 49 66 / 30%);
   backdrop-filter: blur(4px) saturate(1.08);
 }
 
