@@ -13,3 +13,6 @@ shot-*.png
 test-assistant-*.png
 mobile-*.png
 desk-*.png
+
+# 只在本机维护的工作记录，不推到 GitHub
+工作记录.md
