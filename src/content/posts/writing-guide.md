@@ -1,9 +1,9 @@
 ---
-title: 如何新增一篇文章
-description: 这个骨架的写作流程说明，可以当作模板参考。
+title: "如何新增一篇文章"
+description: "这个骨架的写作流程说明，可以当作模板参考。"
 pubDate: 2026-11-09
-tags: ['指南']
-cover: /covers/writing-guide.webp
+tags: ["指南"]
+cover: "/covers/writing-guide.webp"
 ---
 
 ## 1. 新建文件

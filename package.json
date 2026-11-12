@@ -8,7 +8,8 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "editor": "node tools/editor/server.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",
@@ -16,6 +17,7 @@
     "astro": "^7.4.8"
   },
   "devDependencies": {
+    "marked": "^18.2.0",
     "playwright-core": "^1.65.0"
   }
 }

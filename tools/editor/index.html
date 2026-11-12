@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>文章编辑器</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="dot"></span>
+        文章编辑器
+        <span class="hint">改动直接写进 src/content/posts/</span>
+      </div>
+      <div class="topbar-actions">
+        <span class="git-state" id="gitState" title="git 状态"></span>
+        <label class="mini-check" title="上传前先跑一次构建，能提前发现格式错误">
+          <input id="buildBeforePush" type="checkbox" checked />
+          先构建
+        </label>
+        <button class="btn publish" id="publishBtn" type="button">↑ 一键上传</button>
+        <span class="save-state" id="saveState"></span>
+        <button class="btn" id="newBtn" type="button">＋ 新建</button>
+        <button class="btn primary" id="saveBtn" type="button">保存 <kbd>Ctrl</kbd><kbd>S</kbd></button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="sidebar-head">
+          <input id="search" type="search" placeholder="搜索标题或文件名…" autocomplete="off" />
+        </div>
+        <ul class="post-list" id="postList"></ul>
+      </aside>
+
+      <section class="editor" id="editor">
+        <div class="empty-state" id="emptyState">
+          <p>从左边选一篇文章，或者新建一篇。</p>
+          <button class="btn primary" id="emptyNewBtn" type="button">＋ 新建文章</button>
+        </div>
+
+        <div class="editor-body" id="editorBody" hidden>
+          <div class="meta">
+            <label class="field field-wide">
+              <span>标题</span>
+              <input id="fTitle" type="text" placeholder="文章标题" />
+            </label>
+            <label class="field">
+              <span>文件名 / URL</span>
+              <input id="fSlug" type="text" placeholder="my-post" />
+            </label>
+            <label class="field">
+              <span>发布日期</span>
+              <input id="fPubDate" type="date" />
+            </label>
+            <label class="field">
+              <span>标签（逗号分隔）</span>
+              <input id="fTags" type="text" placeholder="随笔, 建站" />
+            </label>
+            <label class="field field-wide">
+              <span>封面图路径</span>
+              <span class="with-button">
+                <input id="fCover" type="text" placeholder="/covers/xxx.webp（留空显示渐变占位）" />
+                <button class="btn" id="pickCoverBtn" type="button">选图</button>
+              </span>
+            </label>
+            <label class="field">
+              <span>摘要</span>
+              <input id="fDesc" type="text" placeholder="一句话摘要（列表和 RSS 用）" />
+            </label>
+            <label class="field field-check">
+              <span>草稿</span>
+              <label class="check"><input id="fDraft" type="checkbox" /> 只在 dev 显示</label>
+            </label>
+          </div>
+
+          <div class="toolbar" id="toolbar">
+            <button class="tool" type="button" data-wrap="**" title="加粗">B</button>
+            <button class="tool" type="button" data-wrap="*" title="斜体"><i>I</i></button>
+            <button class="tool" type="button" data-line="## " title="二级标题">H2</button>
+            <button class="tool" type="button" data-line="### " title="三级标题">H3</button>
+            <button class="tool" type="button" data-link="1" title="链接">🔗</button>
+            <button class="tool" type="button" data-image="1" title="图片">🖼</button>
+            <button class="tool" type="button" data-line="- " title="列表">•</button>
+            <button class="tool" type="button" data-line="1. " title="编号列表">1.</button>
+            <button class="tool" type="button" data-line="> " title="引用">❝</button>
+            <button class="tool" type="button" data-code="1" title="代码块">代码</button>
+            <button class="tool" type="button" data-line="---" title="分隔线">—</button>
+            <span class="toolbar-gap"></span>
+            <button class="tool mode" type="button" data-mode="split" title="左右分屏">分屏</button>
+            <button class="tool mode" type="button" data-mode="edit" title="只看编辑">编辑</button>
+            <button class="tool mode" type="button" data-mode="preview" title="只看预览">预览</button>
+          </div>
+
+          <div class="panes" id="panes" data-mode="split">
+            <textarea id="body" spellcheck="false" placeholder="正文用 Markdown 写…"></textarea>
+            <div class="preview prose" id="preview"></div>
+          </div>
+
+          <div class="statusbar">
+            <span id="statText"></span>
+            <span class="danger-zone">
+              <button class="btn tiny danger" id="deleteBtn" type="button">删除这篇</button>
+            </span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 选图弹层 -->
+    <div class="modal" id="imageModal" hidden>
+      <div class="modal-card">
+        <div class="modal-head">
+          <strong>选择图片</strong>
+          <button class="btn tiny" id="closeModal" type="button">关闭</button>
+        </div>
+        <div class="modal-tools">
+          <label class="btn tiny">
+            上传到 public/covers
+            <input id="uploadInput" type="file" accept="image/*" hidden />
+          </label>
+          <input id="imageFilter" type="search" placeholder="筛选路径…" />
+        </div>
+        <div class="image-grid" id="imageGrid"></div>
+      </div>
+    </div>
+
+    <!-- 上传结果弹层 -->
+    <div class="modal" id="publishModal" hidden>
+      <div class="modal-card publish-card">
+        <div class="modal-head">
+          <strong id="publishTitle">正在上传…</strong>
+          <button class="btn tiny" id="closePublish" type="button">关闭</button>
+        </div>
+        <pre class="publish-log" id="publishLog"></pre>
+        <div class="publish-foot">
+          <span class="muted" id="publishHint"></span>
+        </div>
+      </div>
+    </div>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

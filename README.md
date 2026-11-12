@@ -12,6 +12,63 @@ npm install
 npm run dev      # http://localhost:4321
 npm run build    # 产物输出到 dist/
 npm run preview  # 本地预览构建结果
+npm run editor   # 图形化文章编辑器 → http://localhost:4322
+```
+
+## 文章编辑器（图形界面）
+
+不想手写 frontmatter 时用它。两种打开方式：
+
+**双击**项目根目录的 `打开编辑器.bat`（会自启服务并打开浏览器，关掉后服务继续在后台）
+
+**或者命令行**：
+
+```bash
+npm run editor     # 然后在浏览器打开 http://localhost:4322
+```
+
+用完想关掉服务，双击 `停止编辑器.bat`。
+
+> 想要桌面快捷方式：右键 `打开编辑器.bat` → 发送到 → 桌面快捷方式，之后双击即可。
+
+- 左侧是文章列表，可搜索；点一篇就打开，改完点「保存」（或 `Ctrl+S`）
+- 标题 / 文件名 / 日期 / 标签 / 封面 / 摘要 / 草稿都是表单，保存时自动生成正确的 frontmatter
+- 右侧实时预览（`marked` 渲染，支持表格等 GFM 语法），可切「分屏 / 编辑 / 预览」
+- 工具栏有加粗、标题、列表、引用、代码块等快捷插入
+- 封面可以点「选图」从 `public/` 里挑，也能直接上传到 `public/covers/`
+- 改文件名会自动重命名 `.md` 并删除旧文件
+- `Ctrl+N` 新建，`Ctrl+S` 保存
+
+### 一键上传
+
+右上角有「↑ 一键上传」，一步完成 **构建校验 → git add → commit → push**：
+
+- 按钮左边实时显示 git 状态（当前分支 + 还有几个改动待上传）
+- 「先构建」默认勾选：推送前跑一次 `npm run build`，**文章 frontmatter 写错会直接被拦住**，不会把坏内容推上线
+- 点下去先弹确认框（写明目标分支、改动文件数、是否构建），确认后才执行
+- 执行过程有逐条日志，成功/失败都会说明原因；失败时提示里给修复命令
+- 若当前文章还没保存，会先自动保存再上传
+
+常见失败提示及处理：
+
+| 提示 | 处理 |
+| --- | --- |
+| 没有配置提交身份 | `git config user.name "..."` / `git config user.email "..."` |
+| 推送需要登录 GitHub | 手动执行一次 `git push` 输入凭据，或改用 SSH 远程地址 |
+| 构建失败 | 按日志里的报错改文章 frontmatter（多半是缺 `pubDate` 或类型不对） |
+
+推送成功后 GitHub Actions 会自动构建发布，一两分钟后线上生效。
+
+它只改 `src/content/posts/*.md`，跑起来后 `npm run dev` 那边会热更新，能立刻在博客里看到效果。
+`tools/editor/` 不会被 Astro 构建，也不会部署到线上。
+
+自测：
+
+```bash
+node tools/editor/test-editor.mjs       # 接口：读写/预览/改名/删除/防穿越（26 项）
+node tools/editor/test-editor-ui.mjs    # 真实浏览器走一遍界面（25 项）
+node tools/editor/test-publish.mjs      # git 状态 + dry-run 上传流程（16 项，不推送）
+node tools/editor/test-publish-ui.mjs   # 上传按钮与确认框（12 项，不推送）
 ```
 
 ## 目录结构
