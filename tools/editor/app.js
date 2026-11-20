@@ -29,6 +29,8 @@ const el = {
   imageGrid: $('imageGrid'),
   imageFilter: $('imageFilter'),
   uploadInput: $('uploadInput'),
+  alsoGallery: $('alsoGallery'),
+  imageModalTitle: $('imageModalTitle'),
   closeModal: $('closeModal'),
   gitState: $('gitState'),
   publishBtn: $('publishBtn'),
@@ -386,15 +388,26 @@ function renderImages() {
 
 async function uploadImage(file) {
   const name = file.name.replace(/[\\/:*?"<>|]/g, '_');
-  await api(`/api/upload?dir=covers&name=${encodeURIComponent(name)}`, {
+  const withGallery = el.alsoGallery?.checked !== false;
+  const qs =
+    `?dir=covers&name=${encodeURIComponent(name)}` + (withGallery ? '&gallery=1' : '');
+
+  const res = await api(`/api/upload${qs}`, {
     method: 'POST',
     headers: { 'Content-Type': file.type || 'application/octet-stream' },
     body: file,
   });
+
   state.images = [];
   await openImagePicker();
-  el.fCover.value = `/covers/${name}`;
+  el.fCover.value = res.path || `/covers/${name}`;
   markDirty();
+
+  if (el.imageModalTitle) {
+    el.imageModalTitle.textContent = res.galleryPath
+      ? `已上传，并加入图集：${res.galleryPath}`
+      : '已上传（未加入图集）';
+  }
 }
 
 /* ---------------- 一键上传 ---------------- */

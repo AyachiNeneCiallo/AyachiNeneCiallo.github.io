@@ -112,13 +112,17 @@
     <div class="modal" id="imageModal" hidden>
       <div class="modal-card">
         <div class="modal-head">
-          <strong>选择图片</strong>
+          <strong id="imageModalTitle">选择图片</strong>
           <button class="btn tiny" id="closeModal" type="button">关闭</button>
         </div>
         <div class="modal-tools">
           <label class="btn tiny">
             上传到 public/covers
             <input id="uploadInput" type="file" accept="image/*" hidden />
+          </label>
+          <label class="mini-check" title="上传的封面会同时放进图集页">
+            <input id="alsoGallery" type="checkbox" checked />
+            同时加入图集
           </label>
           <input id="imageFilter" type="search" placeholder="筛选路径…" />
         </div>

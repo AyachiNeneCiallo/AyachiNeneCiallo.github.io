@@ -26,6 +26,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../..');
 const POSTS_DIR = path.join(ROOT, 'src/content/posts');
 const PUBLIC_DIR = path.join(ROOT, 'public');
+const GALLERY_DIR = path.join(PUBLIC_DIR, 'gallery');
 const PORT = Number(process.env.EDITOR_PORT || 4322);
 
 const IMAGE_EXT = new Set(['.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.avif']);
@@ -100,6 +101,44 @@ function buildMarkdown(data, body) {
   }
   lines.push('---', '');
   return lines.join('\n') + (body ?? '');
+}
+
+
+/** 把图片复制一份进图集目录，自动加序号前缀（01-、02-…）；同名则覆盖不重复堆图 */
+async function addToGallery(name, buf) {
+  const ext = path.extname(name).toLowerCase();
+  if (!IMAGE_EXT.has(ext)) throw new Error('图集只接受图片文件');
+
+  await mkdir(GALLERY_DIR, { recursive: true });
+  const base =
+    path
+      .basename(name, path.extname(name))
+      .replace(/[^\w\u4e00-\u9fa5.-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 40) || 'image';
+
+  const existing = (await readdir(GALLERY_DIR)).filter((f) =>
+    IMAGE_EXT.has(path.extname(f).toLowerCase()),
+  );
+
+  // 同名（忽略序号前缀）已存在 → 直接覆盖，避免重复堆图
+  const dup = existing.find((f) => {
+    const stem = path.basename(f, path.extname(f)).replace(/^\d+[-_]/, '');
+    return stem === base && path.extname(f).toLowerCase() === ext;
+  });
+  if (dup) {
+    await writeFile(path.join(GALLERY_DIR, dup), buf);
+    return `/gallery/${encodeURIComponent(dup)}`;
+  }
+
+  const maxNum = existing.reduce((max, f) => {
+    const m = path.basename(f).match(/^(\d+)[-_]/);
+    return m ? Math.max(max, Number(m[1])) : max;
+  }, 0);
+  const seq = String(maxNum + 1).padStart(2, '0');
+  const file = `${seq}-${base}${ext}`;
+  await writeFile(path.join(GALLERY_DIR, file), buf);
+  return `/gallery/${encodeURIComponent(file)}`;
 }
 
 /* ---------------- git / 发布 ---------------- */
@@ -448,7 +487,18 @@ const server = createServer(async (req, res) => {
       const buf = await readBody(req);
       if (buf.length === 0) throw new Error('空文件');
       await writeFile(path.join(destDir, rawName), buf);
-      return json(res, 200, { ok: true, path: `/${dir}/${rawName}`.replace(/\/+/g, '/') });
+
+      // 封面图额外复制一份进图集（内容里插入的图不会走这里）
+      let galleryPath = null;
+      if (url.searchParams.get('gallery') === '1') {
+        galleryPath = await addToGallery(rawName, buf);
+      }
+
+      return json(res, 200, {
+        ok: true,
+        path: `/${dir}/${rawName}`.replace(/\/+/g, '/'),
+        galleryPath,
+      });
     }
 
     /* ---- public 下的静态文件（选图缩略图、封面预览用） ---- */
